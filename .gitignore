@@ -1,0 +1,13 @@
+node_modules
+bower_components
+*.db
+.idea
+npm-debug.log
+.bowerrc
+reports
+.vscode
+typings
+app/public/dist
+build
+portal.sublime-project
+*.sublime-workspace

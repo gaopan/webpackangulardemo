@@ -1,20 +1,16 @@
 export default (ngModule, angular) => {
-	let provider = function() {
-		let $this = {};
-		this.setStateProvider = function(stateProvider) {
-			this._stateProvider = stateProvider;
-		};
+	let provider = function($stateProvider) {
+		let self = this;
+		let $this = $stateProvider;
 		this.lzState = function(name, opts) {
 			let def = opts || {};
 			if (def.templateUrl) {
 				let url = def.templateUrl;
 				def.templateProvider = function($q) {
 					let delay = $q.defer();
-					let req = require.context("./", true, /^\.\/.*\.tpl\.html$/);
-
-					req.ensure([url], function(require) {
-						let template = require(url);
-						console.log(template);
+					require.ensure([], function(require) {
+						let req = require.context("./", true, /^\.\/.*\.tpl\.html$/);
+						let template = req(url);
 						delay.resolve(template);
 					});
 					return delay.promise;
@@ -34,14 +30,16 @@ export default (ngModule, angular) => {
 						$ocLazyLoad.load({
 							name: moduleName
 						});
-						console.log(module);
 						delay.resolve(module);
 					});
 					return delay.promise;
 				};
 				resolve._load.$inject = ['$q', '$ocLazyLoad'];
 			}
-			return this._stateProvider.state(name, def);
+			let state = angular.extend($stateProvider.state(name, def), {
+				lzState: self.lzState
+			});
+			return state;
 		};
 		let $get = function() {
 			return $this;
@@ -51,6 +49,6 @@ export default (ngModule, angular) => {
 
 		this.$get = $get;
 	};
-	provider.$inject = [];
+	provider.$inject = ['$stateProvider'];
 	ngModule.provider('$lazyLoadState', provider);
 };
